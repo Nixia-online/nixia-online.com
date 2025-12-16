@@ -1,63 +1,79 @@
-import Image from "next/image";
+// Define the structure of a single game object
+export interface Game {
+  id: number;
+  title: string;
+  short_description: string;
+  thumbnail: string;
+  main_image: string;
+  article_content: string;
+}
 
-export default function Home() {
+
+// The API returns an array of Game objects
+export type GameData = Game[];
+
+
+// This is a Server Component
+export default async function Home() {
+  let data: GameData | null = null;
+  let error: string | null = null;
+ 
+  // Define the limit
+  const limit = 20;
+
+
+  try {
+    const response = await fetch('https://www.mmobomb.com/api1/latestnews');
+
+
+    if (!response.ok) {
+      const errorText = response.statusText || 'Unknown API error';
+      throw new Error(`Failed to fetch data: ${response.status} - ${errorText}`);
+    }
+
+
+    data = (await response.json()) as GameData;
+
+
+  } catch (e) {
+    console.error('Server Fetch Error:', e);
+    error = e instanceof Error ? e.message : 'An unknown error occurred.';
+  }
+ 
+  // Slice the data to the desired limit (20) before rendering
+  const gamesToShow = data ? data.slice(0, limit) : [];
+ 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="w-full">
+          <h1 className="text-3xl font-bold mb-4">Server-Side Data Fetching (Limited)</h1>
+          <p className="mb-6">Hello World</p>
+         
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 p-4 rounded" role="alert">
+              <p className="font-bold">Error loading data:</p>
+              <p>{error}</p>
+            </div>
+          )}
+
+
+          {gamesToShow.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mt-4 mb-2">Game Titles (First 20)</h3>
+              <ul className="list-disc ml-5 space-y-1">
+                {gamesToShow.map((game) => (
+                  <li key={game.id} className="text-sm">
+                    **{game.title}** *({game.short_description})*
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+
+          {!gamesToShow.length && !error && <p>No data available after filtering.</p>}
+         
         </div>
       </main>
     </div>
